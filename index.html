@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Калькулятор ЕГЭ — Республика Саха (Якутия)</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient"></div>
+    <main class="page">
+      <header class="hero">
+        <div class="hero-text">
+          <h1 class="hero-title">
+            <span class="hero-title-main">Калькулятор ЕГЭ</span>
+            <span class="hero-title-sub">по Республике Саха (Якутия)</span>
+          </h1>
+          <p class="subhead">
+            Введите баллы, выберите фильтры и получите список программ, куда вы проходите по минимальным требованиям.
+          </p>
+        </div>
+        <div class="hero-panel">
+          <div class="stat">
+            <span class="stat-value" id="total-programs">—</span>
+            <span class="stat-label">Программ в базе</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="matched-programs">—</span>
+            <span class="stat-label">Подходящих программ</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="section" aria-labelledby="scores-title">
+        <div class="section-header">
+          <h2 id="scores-title">Ваши баллы ЕГЭ</h2>
+          <p>Оставьте поле пустым, если предмет не сдавали.</p>
+        </div>
+        <div class="scores-grid" id="scores-grid">
+          <label class="score-input">
+            <span>Русский язык</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="Русский язык" />
+          </label>
+          <label class="score-input">
+            <span>Математика</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="Математика" />
+          </label>
+          <label class="score-input">
+            <span>Физика</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="Физика" />
+          </label>
+          <label class="score-input">
+            <span>Информатика</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="Информатика" />
+          </label>
+          <label class="score-input">
+            <span>Химия</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="Химия" />
+          </label>
+          <label class="score-input">
+            <span>Биология</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="Биология" />
+          </label>
+          <label class="score-input">
+            <span>География</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="География" />
+          </label>
+          <label class="score-input">
+            <span>История</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="История" />
+          </label>
+          <label class="score-input">
+            <span>Обществознание</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="Обществознание" />
+          </label>
+          <label class="score-input">
+            <span>Литература</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="Литература" />
+          </label>
+          <label class="score-input">
+            <span>Иностранный язык</span>
+            <input type="number" min="0" max="100" placeholder="0" data-subject="Иностранный язык" />
+          </label>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="filters-title">
+        <div class="section-header">
+          <h2 id="filters-title">Фильтры</h2>
+          <p>Настройте выдачу под ваши предпочтения.</p>
+        </div>
+        <div class="filters">
+          <label class="toggle">
+            <input type="checkbox" id="include-additional" />
+            <span class="toggle-ui"></span>
+            <span class="toggle-label">Включить результат с доп. экзаменами</span>
+          </label>
+
+          <label class="select-field">
+            <span>Выбрать город</span>
+            <select id="city-select"></select>
+          </label>
+
+          <div class="form-toggles">
+            <span class="form-title">Форма обучения</span>
+            <label class="toggle compact">
+              <input type="checkbox" id="form-full" checked />
+              <span class="toggle-ui"></span>
+              <span class="toggle-label">Очная</span>
+            </label>
+            <label class="toggle compact">
+              <input type="checkbox" id="form-part" checked />
+              <span class="toggle-ui"></span>
+              <span class="toggle-label">Очно-заочная</span>
+            </label>
+            <label class="toggle compact">
+              <input type="checkbox" id="form-extramural" checked />
+              <span class="toggle-ui"></span>
+              <span class="toggle-label">Заочная</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="results-title">
+        <div class="section-header">
+          <h2 id="results-title">Результаты</h2>
+          <p id="results-summary">Введите баллы, чтобы увидеть доступные программы.</p>
+        </div>
+        <div class="payment-panel" id="payment-panel">
+          <div class="payment-info">
+            <h3>Доступ к результату</h3>
+            <p>Разовый доступ. Цена: <span id="price-value">—</span> ₽</p>
+          </div>
+          <div class="payment-actions">
+            <label class="toggle compact">
+              <input type="checkbox" id="send-email" />
+              <span class="toggle-ui"></span>
+              <span class="toggle-label">Отправить результат на e-mail</span>
+            </label>
+            <label class="email-field" id="email-field" hidden>
+              <span>Электронная почта</span>
+              <input type="email" id="email-input" placeholder="you@example.com" />
+            </label>
+            <button class="pay-button" id="pay-button">Оплатить и получить результат</button>
+            <div class="payment-status" id="payment-status"></div>
+          </div>
+        </div>
+        <div class="results" id="results"></div>
+        <div class="empty" id="empty-state" hidden>
+          <h3>Подходящих программ нет</h3>
+          <p>Проверьте баллы, фильтры или включите результаты с дополнительными экзаменами.</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
