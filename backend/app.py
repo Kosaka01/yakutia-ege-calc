@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from flask import Flask, abort, jsonify, request, send_from_directory
 
 ROOT = Path(__file__).resolve().parents[1]
-load_dotenv(ROOT / \"backend\" / \".env\")
+load_dotenv(ROOT / "backend" / ".env")
 DATA_PATH = ROOT / "data" / "programs.json"
 DB_PATH = ROOT / "backend" / "app.db"
 
@@ -22,6 +22,7 @@ BASE_URL = os.getenv("PUBLIC_BASE_URL", "http://localhost:5000")
 PRICE_RUB = os.getenv("PRICE_RUB", "10.00")
 CURRENCY = "RUB"
 PAYMENT_DESCRIPTION = os.getenv("PAYMENT_DESCRIPTION", "Доступ к результату калькулятора ЕГЭ")
+PAYMENT_STUB_MODE = os.getenv("PAYMENT_STUB_MODE", "false").strip().lower() in {"1", "true", "yes", "on"}
 
 SMTP_HOST = os.getenv("SMTP_HOST", "")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
@@ -49,7 +50,6 @@ SUBJECT_ALIASES = {
 
 
 app = Flask(__name__)
-init_db()
 
 
 def now_iso() -> str:
@@ -352,6 +352,18 @@ def request_payment(order_id: str) -> Dict[str, Any]:
     return response.json()
 
 
+def build_stub_payment(order_id: str) -> Dict[str, Any]:
+    return {
+        "id": f"stub-{order_id}",
+        "status": "succeeded",
+        "confirmation": {
+            "type": "redirect",
+            "confirmation_url": f"{BASE_URL}/?order_id={order_id}",
+        },
+        "metadata": {"order_id": order_id},
+    }
+
+
 def fetch_payment(payment_id: str) -> Dict[str, Any]:
     response = requests.get(
         f"https://api.yookassa.ru/v3/payments/{payment_id}",
@@ -438,7 +450,15 @@ def api_create_payment():
     order_id = create_order(payload, email, send_email)
 
     try:
-        payment = request_payment(order_id)
+        if PAYMENT_STUB_MODE:
+            results = calculate_results(payload, PROGRAMS)
+            update_order_results(order_id, results)
+            update_order_status(order_id, "paid", "succeeded")
+            if send_email and email:
+                send_email_results(email, results)
+            payment = build_stub_payment(order_id)
+        else:
+            payment = request_payment(order_id)
     except Exception as exc:  # noqa: BLE001
         set_order_error(order_id, str(exc))
         return jsonify({"error": "Не удалось создать платеж"}), 500
