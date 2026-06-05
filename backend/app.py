@@ -353,7 +353,7 @@ def request_payment(order_id: str, email: str = "") -> Dict[str, Any]:
             ]
         },
     }   
-    app.logger.error("DEBUG payload to YooKassa: %s", json.dumps(payload, ensure_ascii=False))
+    # app.logger.error("DEBUG payload to YooKassa: %s", json.dumps(payload, ensure_ascii=False))
 
     response = requests.post(
         "https://api.yookassa.ru/v3/payments",
@@ -464,7 +464,7 @@ def api_create_payment():
     if not email:
         return jsonify({"error": "Укажите e-mail для получения чека"}), 400
 
-    app.logger.error("DEBUG email='%s' send_email=%s", email, send_email)
+    # app.logger.error("DEBUG email='%s' send_email=%s", email, send_email)
     order_id = create_order(payload, email, send_email)
 
     try:
