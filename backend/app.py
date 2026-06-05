@@ -321,7 +321,7 @@ def get_order(order_id: str) -> Optional[sqlite3.Row]:
     return row
 
 
-def request_payment(order_id: str) -> Dict[str, Any]:
+def request_payment(order_id: str, email: str = "") -> Dict[str, Any]:
     if not SHOP_ID or not SECRET_KEY:
         raise RuntimeError("YooKassa credentials are not configured")
 
@@ -339,7 +339,21 @@ def request_payment(order_id: str) -> Dict[str, Any]:
         },
         "description": PAYMENT_DESCRIPTION,
         "metadata": {"order_id": order_id},
-    }
+        "receipt": {
+            "customer": {"email": email},
+            "items": [
+                {
+                    "description": PAYMENT_DESCRIPTION,
+                    "quantity": "1",
+                    "amount": {"value": PRICE_RUB, "currency": CURRENCY},
+                    "vat_code": 1,
+                    "payment_mode": "full_payment",
+                    "payment_subject": "service",
+                }
+            ]
+        },
+    }   
+    app.logger.error("DEBUG payload to YooKassa: %s", json.dumps(payload, ensure_ascii=False))
 
     response = requests.post(
         "https://api.yookassa.ru/v3/payments",
@@ -348,7 +362,10 @@ def request_payment(order_id: str) -> Dict[str, Any]:
         json=payload,
         timeout=20,
     )
-    response.raise_for_status()
+    # response.raise_for_status()
+    if not response.ok:
+        app.logger.error("YooKassa response: %s %s", response.status_code, response.text)
+        raise RuntimeError(f"YooKassa {response.status_code}: {response.text}")
     return response.json()
 
 
@@ -409,7 +426,7 @@ def send_email_results(email: str, results: List[Dict[str, Any]]) -> None:
 
 PROGRAMS = load_programs()
 METADATA = build_metadata(PROGRAMS)
-
+init_db()
 
 @app.get("/")
 def serve_index():
@@ -442,11 +459,12 @@ def api_create_payment():
     if not selected_forms:
         return jsonify({"error": "Выберите хотя бы одну форму обучения"}), 400
 
-    send_email = bool(payload.get("sendEmail", False))
+    send_email = True
     email = (payload.get("email") or "").strip()
-    if send_email and not email:
-        return jsonify({"error": "Укажите e-mail для отправки результата"}), 400
+    if not email:
+        return jsonify({"error": "Укажите e-mail для получения чека"}), 400
 
+    app.logger.error("DEBUG email='%s' send_email=%s", email, send_email)
     order_id = create_order(payload, email, send_email)
 
     try:
@@ -458,9 +476,10 @@ def api_create_payment():
                 send_email_results(email, results)
             payment = build_stub_payment(order_id)
         else:
-            payment = request_payment(order_id)
+            payment = request_payment(order_id, email)
     except Exception as exc:  # noqa: BLE001
         set_order_error(order_id, str(exc))
+        app.logger.error("Payment creation failed: %s", exc)
         return jsonify({"error": "Не удалось создать платеж"}), 500
 
     update_order_payment(order_id, payment.get("id", ""), payment.get("status", ""))
@@ -545,5 +564,4 @@ def api_yookassa_webhook():
 
 
 if __name__ == "__main__":
-    init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)

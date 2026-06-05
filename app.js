@@ -14,7 +14,6 @@ const elements = {
   matchedPrograms: document.getElementById("matched-programs"),
   resultsSummary: document.getElementById("results-summary"),
   priceValue: document.getElementById("price-value"),
-  sendEmail: document.getElementById("send-email"),
   emailField: document.getElementById("email-field"),
   emailInput: document.getElementById("email-input"),
   payButton: document.getElementById("pay-button"),
@@ -268,7 +267,6 @@ function lockInputs(lock) {
     const checkbox = document.getElementById(form.id);
     if (checkbox) checkbox.disabled = lock;
   });
-  elements.sendEmail.disabled = lock;
   elements.emailInput.disabled = lock;
   elements.payButton.disabled = lock;
 }
@@ -276,7 +274,8 @@ function lockInputs(lock) {
 function updatePayButtonState() {
   const scores = getScores();
   const selectedForms = getSelectedForms();
-  elements.payButton.disabled = !(hasAnyScore(scores) && selectedForms.length);
+  const email = elements.emailInput.value.trim();
+  elements.payButton.disabled = !(hasAnyScore(scores) && selectedForms.length && isEmailValid(email));
 }
 
 function buildPayload() {
@@ -287,7 +286,7 @@ function buildPayload() {
       city: elements.citySelect.value,
       forms: getSelectedForms(),
     },
-    sendEmail: elements.sendEmail.checked,
+    sendEmail: true,
     email: elements.emailInput.value.trim(),
   };
 }
@@ -306,11 +305,11 @@ async function createPayment() {
     setPaymentStatus("Выберите хотя бы одну форму обучения.", true);
     return;
   }
-  if (payload.sendEmail && !payload.email) {
-    setPaymentStatus("Укажите e-mail для отправки результата.", true);
+  if (!payload.email) {
+    setPaymentStatus("Укажите e-mail для получения чека и результата.", true);
     return;
   }
-  if (payload.sendEmail && !isEmailValid(payload.email)) {
+  if (!isEmailValid(payload.email)) {
     setPaymentStatus("Проверьте корректность e-mail.", true);
     return;
   }
@@ -409,9 +408,7 @@ async function init() {
     if (checkbox) checkbox.addEventListener("change", updatePayButtonState);
   });
 
-  elements.sendEmail.addEventListener("change", () => {
-    elements.emailField.hidden = !elements.sendEmail.checked;
-  });
+  elements.emailInput.addEventListener("input", updatePayButtonState);
 
   elements.payButton.addEventListener("click", (event) => {
     event.preventDefault();

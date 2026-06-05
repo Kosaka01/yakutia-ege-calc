@@ -133,14 +133,9 @@
             <p>Разовый доступ. Цена: <span id="price-value">—</span> ₽</p>
           </div>
           <div class="payment-actions">
-            <label class="toggle compact">
-              <input type="checkbox" id="send-email" />
-              <span class="toggle-ui"></span>
-              <span class="toggle-label">Отправить результат на e-mail</span>
-            </label>
-            <label class="email-field" id="email-field" hidden>
+            <label class="email-field" id="email-field">
               <span>Электронная почта</span>
-              <input type="email" id="email-input" placeholder="you@example.com" />
+              <input type="email" id="email-input" placeholder="you@example.com" required />
             </label>
             <button class="pay-button" id="pay-button">Оплатить и получить результат</button>
             <div class="payment-status" id="payment-status"></div>
