@@ -328,7 +328,8 @@ async function createPayment() {
       throw new Error(data.error || "Ошибка создания платежа");
     }
     sessionStorage.setItem("order_id", data.orderId);
-    window.location.href = data.confirmationUrl;
+    window.open(data.confirmationUrl, "_blank");
+    pollPayment(data.orderId);
   } catch (error) {
     setPaymentStatus(error.message || "Не удалось создать платеж.", true);
     elements.payButton.disabled = false;
